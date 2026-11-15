@@ -7,11 +7,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Miss Source It">
+<meta name="apple-mobile-web-app-title" content="MissSourcette💛">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Miss Source It</title>
+<title>MissSourcette 💛</title>
 <style>
 :root{
   --brand:#7a2e4d; --brand-2:#a8466f; --brand-soft:#f6e9ef;
@@ -138,6 +138,7 @@ main{max-width:1100px;margin:0 auto;padding:14px 14px 110px}
 #viewer .sh-body{display:flex;align-items:center;justify-content:center;background:#2a2226;padding:0}
 #viewer img{max-width:100%;max-height:100%;object-fit:contain}
 #viewer iframe{width:100%;height:100%;border:0;background:#fff}
+.heart{display:inline-block;margin-left:6px;font-size:1.05em;line-height:1;background:linear-gradient(160deg,#f7e08a 0%,#d4af37 45%,#a8841f 100%);-webkit-background-clip:text;background-clip:text;color:#d4af37;-webkit-text-fill-color:transparent;filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
 .set-row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #f1ecee;font-size:14px}
 .set-row:last-child{border:0}
 .hint{font-size:12.5px;color:var(--muted);margin-top:6px}
@@ -149,7 +150,7 @@ main{max-width:1100px;margin:0 auto;padding:14px 14px 110px}
 <div id="login" class="hidden">
   <div class="lbox">
     <img src="icon-192.png" alt="" width="64" height="64" style="border-radius:16px">
-    <h1>Miss Source It</h1>
+    <h1>MissSourcette<span class="heart" aria-hidden="true">♥</span></h1>
     <p>Enter your PIN</p>
     <form id="loginForm" autocomplete="off">
       <!-- visible type=password input: reliable on iOS -->
@@ -162,7 +163,7 @@ main{max-width:1100px;margin:0 auto;padding:14px 14px 110px}
 
 <header>
   <div class="hrow">
-    <div class="logo">Miss Source It<small id="who"></small></div>
+    <div class="logo">MissSourcette<span class="heart" aria-hidden="true">♥</span><small id="who"></small></div>
     <button class="ibtn" id="refreshBtn" title="Refresh" aria-label="Refresh">⟳</button>
     <button class="ibtn" id="exportBtn" title="Export CSV" aria-label="Export CSV">⇩</button>
     <button class="ibtn" id="setBtn" title="Settings" aria-label="Settings">⚙</button>
@@ -232,7 +233,7 @@ main{max-width:1100px;margin:0 auto;padding:14px 14px 110px}
         <div style="display:flex;gap:8px;margin-top:10px"><button class="btn pri" id="saveApi">Save &amp; connect</button><button class="btn" id="useLocal">Use local mode</button></div>
         <div class="hint">Leave empty to use the app on this device only. All 5 users should use the same URL (or set it once in index.html → DEFAULT_API_URL).</div>
       </div>
-      <div class="meta">Miss Source It · v1.0</div>
+      <div class="meta">MissSourcette · v1.1</div>
     </div>
   </div>
 </div>
@@ -737,7 +738,7 @@ $('#exportBtn').addEventListener('click', () => {
   const csv = '﻿' + csvRows(kind).map(r=>r.map(v=>{ const s=String(v??''); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }).join(',')).join('\r\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
-  a.download = `MissSourceIt_${kind==='inventory'?'Inventory':'Sale'}_${today()}.csv`;
+  a.download = `MissSourcette_${kind==='inventory'?'Inventory':'Sale'}_${today()}.csv`;
   document.body.appendChild(a); a.click(); a.remove();
 });
 
