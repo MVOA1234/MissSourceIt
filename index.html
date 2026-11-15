@@ -125,6 +125,19 @@ main{max-width:1100px;margin:0 auto;padding:14px 14px 110px}
 .lbox .btn{width:100%;margin-top:12px;padding:12px}
 .lerr{color:var(--bad);font-size:13px;min-height:18px;margin-top:8px}
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 86px);transform:translateX(-50%);background:#2a2226;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;z-index:80;max-width:90vw;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.att{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-bottom:10px}
+.ati{position:relative;border:1px solid var(--line);border-radius:10px;background:#faf7f8;height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px;text-align:center;font-size:11px;color:var(--muted);overflow:hidden;cursor:pointer}
+.ati .ic{font-size:28px;line-height:1}
+.ati .nm{margin-top:4px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ati .x2{position:absolute;top:3px;right:3px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:13px;line-height:24px;padding:0}
+.ati.busy{cursor:default;opacity:.7}
+.atbtns{display:flex;gap:8px;flex-wrap:wrap}
+.atbtns label{flex:1;min-width:140px;text-align:center;border:1.5px dashed #d5c4cb;border-radius:12px;padding:10px;color:var(--brand);font-weight:700;cursor:pointer}
+.atbtns label.dis{opacity:.45;pointer-events:none}
+.atbtns input{display:none}
+#viewer .sh-body{display:flex;align-items:center;justify-content:center;background:#2a2226;padding:0}
+#viewer img{max-width:100%;max-height:100%;object-fit:contain}
+#viewer iframe{width:100%;height:100%;border:0;background:#fff}
 .set-row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #f1ecee;font-size:14px}
 .set-row:last-child{border:0}
 .hint{font-size:12.5px;color:var(--muted);margin-top:6px}
@@ -186,6 +199,14 @@ main{max-width:1100px;margin:0 auto;padding:14px 14px 110px}
       <button class="btn" data-close>Cancel</button>
       <button class="btn pri" id="saveBtn">Save</button>
     </div>
+  </div>
+</div>
+
+<!-- Attachment viewer -->
+<div class="modal hidden" id="viewer">
+  <div class="sheet">
+    <div class="sh-head"><button class="x" data-closeviewer aria-label="Close">✕</button><h2 id="vTitle">Attachment</h2><a class="btn" id="vDown" download>Download</a></div>
+    <div class="sh-body" id="vBody"></div>
   </div>
 </div>
 
@@ -395,7 +416,7 @@ function render(){
       L.innerHTML = rows.length ? rows.map(e=>{ const t=totals(e); return `
         <button class="card" data-open="inventory" data-id="${esc(e.id)}">
           <div class="ct"><b>${esc(e.sourcedFrom||'Purchase')}</b><span class="amt">${inr(t.total)}</span></div>
-          <div class="cs"><span>${fdate(e.date)}</span>${e.invoiceNo?`<span>Inv ${esc(e.invoiceNo)}</span>`:''}${e.orderNo?`<span>Order ${esc(e.orderNo)}</span>`:''}<span>${(e.items||[]).length} article(s)</span>${e.paidBy?`<span>Paid by ${esc(e.paidBy)}</span>`:''}</div>
+          <div class="cs"><span>${fdate(e.date)}</span>${e.invoiceNo?`<span>Inv ${esc(e.invoiceNo)}</span>`:''}${e.orderNo?`<span>Order ${esc(e.orderNo)}</span>`:''}<span>${(e.items||[]).length} article(s)</span>${e.paidBy?`<span>Paid by ${esc(e.paidBy)}</span>`:''}${(e.attachments||[]).length?`<span>📎 ${e.attachments.length}</span>`:''}</div>
           <div class="chips">${(e.items||[]).slice(0,4).map(i=>`<span class="chip">${esc(i.article||i.desc)}</span>`).join('')}${(e.items||[]).length>4?`<span class="chip">+${e.items.length-4}</span>`:''}</div>
         </button>`; }).join('') : empty('No purchases yet. Tap “New Purchase” to add one.');
     }
@@ -408,7 +429,7 @@ function render(){
     L.innerHTML = rows.length ? rows.map(e=>{ const t=totals(e); return `
       <button class="card" data-open="sale" data-id="${esc(e.id)}">
         <div class="ct"><b>${esc(e.name||'Customer')}</b><span class="amt">${inr(t.total)}</span></div>
-        <div class="cs"><span>${fdate(e.date)}</span>${e.mobile?`<span>${esc(e.mobile)}</span>`:''}<span>${(e.items||[]).length} item(s)</span>${e.shipping&&e.shipping.company?`<span>${esc(e.shipping.company)}${e.shipping.waybill?' · '+esc(e.shipping.waybill):''}</span>`:''}</div>
+        <div class="cs"><span>${fdate(e.date)}</span>${e.mobile?`<span>${esc(e.mobile)}</span>`:''}<span>${(e.items||[]).length} item(s)</span>${e.shipping&&e.shipping.company?`<span>${esc(e.shipping.company)}${e.shipping.waybill?' · '+esc(e.shipping.waybill):''}</span>`:''}${(e.attachments||[]).length?`<span>📎 ${e.attachments.length}</span>`:''}</div>
         <div class="chips">${(e.items||[]).slice(0,4).map(i=>`<span class="chip">${esc(i.article||i.desc)}</span>`).join('')}${(e.items||[]).length>4?`<span class="chip">+${e.items.length-4}</span>`:''}</div>
       </button>`; }).join('') : empty('No sales yet. Tap “New Sale” to add one.');
   }
@@ -422,8 +443,8 @@ const byDate = (a,b) => String(b.date).localeCompare(String(a.date)) || String(b
 const blankLine = () => ({desc:'', article:'', hsn:'', qty:1, price:'', discount:'', igstPct:''});
 function blank(kind){
   return kind==='inventory'
-    ? {id:uid('P'), date:today(), sourcedFrom:'', invoiceNo:'', invoiceDate:'', orderNo:'', orderDate:'', items:[blankLine()], shipping:{hsn:'',price:'',discount:'',igstPct:''}, paidBy:''}
-    : {id:uid('S'), date:today(), name:'', address:'', email:'', mobile:'', items:[blankLine()], shipping:{date:'',company:'',waybill:'',hsn:'',price:'',discount:'',igstPct:''}};
+    ? {id:uid('P'), date:today(), sourcedFrom:'', invoiceNo:'', invoiceDate:'', orderNo:'', orderDate:'', items:[blankLine()], shipping:{hsn:'',price:'',discount:'',igstPct:''}, paidBy:'', attachments:[]}
+    : {id:uid('S'), date:today(), name:'', address:'', email:'', mobile:'', items:[blankLine()], shipping:{date:'',company:'',waybill:'',hsn:'',price:'',discount:'',igstPct:''}, attachments:[]};
 }
 function openForm(kind, id){
   draftKind = kind;
@@ -431,6 +452,8 @@ function openForm(kind, id){
   draft = src ? JSON.parse(JSON.stringify(src)) : blank(kind);
   draft.items = draft.items && draft.items.length ? draft.items : [blankLine()];
   draft.shipping = draft.shipping || {};
+  draft.attachments = draft.attachments || [];
+  uploading = 0;
   draft._isNew = !src;
   $('#formTitle').textContent = (src?'Edit ':'New ') + (kind==='inventory'?'Purchase':'Sale');
   $('#delBtn').classList.toggle('hidden', !src || !canDelete());
@@ -489,6 +512,7 @@ function renderForm(){
     h += `<div class="sec"><h3>Payment</h3><div class="grid">${fld('Paid by','paidBy','text','span2 list="payerList" autocomplete="off"')}</div>
       <datalist id="payerList">${payers.map(x=>`<option value="${esc(x)}">`).join('')}</datalist></div>`;
   }
+  h += attachSection();
   if(!draft._isNew) h += `<div class="meta">${draft.createdBy?'Created by '+esc(draft.createdBy)+' · ':''}${draft.updatedAt?'Last updated '+new Date(draft.updatedAt).toLocaleString():''}</div>`;
   $('#formBody').innerHTML = h;
   updateTotals();
@@ -571,7 +595,86 @@ $('#formBody').addEventListener('click', ev => {
 });
 $('#formBody').addEventListener('keydown', ev => { if(ev.key==='Enter' && ev.target.tagName==='INPUT') ev.preventDefault(); });
 
+/* ================= ATTACHMENTS ================= */
+const MAX_ATT = 5;
+let uploading = 0, pending = [];   // pending = files currently uploading (for display)
+function attachSection(){
+  const list = draft.attachments || [], n = list.length + pending.length, full = n >= MAX_ATT;
+  const off = !connected();
+  const tiles = list.map((a,i)=>{
+    const img = /^image\//.test(a.mime||'') || /\.(jpe?g|png|webp|gif|heic)$/i.test(a.name||'');
+    return `<div class="ati" data-view="${i}" title="${esc(a.name)}"><span class="ic">${img?'🖼️':'📄'}</span><span class="nm">${esc(a.name)}</span><button type="button" class="x2" data-rmatt="${i}" aria-label="Remove">✕</button></div>`;
+  }).join('') + pending.map(p=>`<div class="ati busy"><span class="ic">⏳</span><span class="nm">${esc(p)}</span></div>`).join('');
+  return `<div class="sec"><h3>Invoice attachments <span style="text-transform:none;letter-spacing:0;color:var(--muted);font-weight:600">${n}/${MAX_ATT}</span></h3>
+    ${n?`<div class="att">${tiles}</div>`:''}
+    <div class="atbtns">
+      <label class="${full||off?'dis':''}">📎 Upload file<input type="file" data-attin accept="image/*,application/pdf" multiple></label>
+      <label class="${full||off?'dis':''}">📷 Take photo<input type="file" data-attin accept="image/*" capture="environment"></label>
+    </div>
+    <div class="hint">${off?'Attachments need the Google Sheet connection.':'Photos or PDF, up to '+MAX_ATT+' per '+(draftKind==='inventory'?'purchase':'sale')+'. Photos are compressed automatically.'}</div></div>`;
+}
+function rerenderKeepScroll(){ const b=$('#formBody'), y=b.scrollTop; renderForm(); b.scrollTop=y; }
+function readAsDataURL(blob){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(blob); }); }
+async function shrinkImage(file){
+  // resize big photos to max 1800px and JPEG ~80% so uploads are fast on mobile data
+  if(!/^image\/(jpeg|png|webp|heic|heif)/i.test(file.type) || file.size < 400*1024) return file;
+  try{
+    const url = URL.createObjectURL(file);
+    const img = await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=url; });
+    const k = Math.min(1, 1800/Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement('canvas'); c.width=Math.round(img.naturalWidth*k); c.height=Math.round(img.naturalHeight*k);
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(url);
+    const blob = await new Promise(r=>c.toBlob(r,'image/jpeg',0.8));
+    if(!blob || blob.size >= file.size) return file;
+    return new File([blob], file.name.replace(/\.\w+$/,'')+'.jpg', {type:'image/jpeg'});
+  }catch(e){ return file; }
+}
+async function addFiles(files){
+  if(!connected()) return toast('Attachments need the Google Sheet connection');
+  if(!navigator.onLine) return toast('You are offline — connect to the internet to attach files');
+  const room = MAX_ATT - draft.attachments.length - pending.length;
+  let list = [...files];
+  if(list.length > room){ toast(`Only ${MAX_ATT} attachments allowed — ${list.length-room} skipped`); list = list.slice(0, Math.max(0,room)); }
+  const myDraft = draft;
+  for(const f0 of list){
+    if(!/^image\/|^application\/pdf$/.test(f0.type) && !/\.pdf$/i.test(f0.name)){ toast(f0.name+': only photos or PDF'); continue; }
+    const label = f0.name || 'photo.jpg';
+    pending.push(label); uploading++; rerenderKeepScroll();
+    try{
+      const f = await shrinkImage(f0);
+      if(f.size > 15*1024*1024) throw new Error('file is larger than 15 MB');
+      const data = (await readAsDataURL(f)).split(',')[1];
+      const name = (f.name && f.name !== 'image.jpg') ? f.name : (draftKind==='inventory'?'Invoice':'Sale')+'_'+today()+'_'+Date.now().toString(36)+'.jpg';
+      const j = await api('upload', {kind: draftKind==='inventory'?'inventory':'sale', file:{name, mime: f.type || (/\.pdf$/i.test(name)?'application/pdf':'image/jpeg'), data}});
+      if(myDraft === draft) draft.attachments.push(j.file);
+    }catch(err){ toast('Upload failed: '+err.message, 4000); }
+    finally{ pending.splice(pending.indexOf(label),1); uploading--; if(myDraft===draft) rerenderKeepScroll(); }
+  }
+}
+async function viewAttachment(a){
+  const v = $('#viewer'); $('#vTitle').textContent = a.name; $('#vBody').innerHTML = '<div style="color:#fff">Loading…</div>'; $('#vDown').removeAttribute('href');
+  v.classList.remove('hidden');
+  try{
+    const j = await api('file', {id:a.id});
+    const bin = atob(j.data), u = new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([u], {type:j.mime}));
+    $('#vDown').href = url; $('#vDown').download = j.name || a.name;
+    $('#vBody').innerHTML = /^image\//.test(j.mime) ? `<img src="${url}" alt="">` : /pdf/.test(j.mime) ? `<iframe src="${url}"></iframe>` : '<div style="color:#fff">Preview not available — use Download</div>';
+  }catch(err){ $('#vBody').innerHTML = `<div style="color:#fff;padding:20px">Could not open: ${esc(err.message)}</div>`; }
+}
+document.addEventListener('click', ev => { if(ev.target.closest('[data-closeviewer]')) $('#viewer').classList.add('hidden'); });
+$('#formBody').addEventListener('change', ev => {
+  if(ev.target.matches('[data-attin]')){ const fs = ev.target.files; if(fs && fs.length) addFiles(fs); ev.target.value=''; }
+});
+$('#formBody').addEventListener('click', ev => {
+  const rm = ev.target.closest('[data-rmatt]');
+  if(rm){ ev.stopPropagation(); const a=draft.attachments[+rm.dataset.rmatt]; if(confirm('Remove “'+a.name+'” from this '+(draftKind==='inventory'?'purchase':'sale')+'?')){ draft.attachments.splice(+rm.dataset.rmatt,1); rerenderKeepScroll(); } return; }
+  const vw = ev.target.closest('[data-view]');
+  if(vw) viewAttachment(draft.attachments[+vw.dataset.view]);
+});
+
 $('#saveBtn').addEventListener('click', () => {
+  if(uploading) return toast('Please wait — attachments are still uploading');
   const isInv = draftKind==='inventory';
   const items = draft.items.filter(it => [it.desc,it.article,it.price].some(v=>String(v||'').trim()!==''));
   if(!draft.date) return toast('Please enter the date');
@@ -668,10 +771,10 @@ $('#logoutBtn').addEventListener('click', logout);
 $('#refreshBtn').addEventListener('click', () => connected() ? refresh(true) : toast('Local mode — nothing to sync'));
 function closeModals(){ document.querySelectorAll('.modal').forEach(m=>m.classList.add('hidden')); }
 document.addEventListener('click', ev => {
-  if(ev.target.closest('[data-close]')) closeModals();
+  if(ev.target.closest('[data-close]')){ if(uploading && !confirm('Attachments are still uploading. Close anyway?')) return; closeModals(); }
   const op = ev.target.closest('[data-open]'); if(op) openForm(op.dataset.open, op.dataset.id);
 });
-document.addEventListener('keydown', ev => { if(ev.key==='Escape') closeModals(); });
+document.addEventListener('keydown', ev => { if(ev.key==='Escape'){ if(!$('#viewer').classList.contains('hidden')) $('#viewer').classList.add('hidden'); else closeModals(); } });
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{ tab=b.dataset.tab; query=''; $('#q').value=''; render(); window.scrollTo(0,0); }));
 document.querySelectorAll('#invSeg button').forEach(b=>b.addEventListener('click',()=>{ invView=b.dataset.v; document.querySelectorAll('#invSeg button').forEach(x=>x.classList.toggle('on',x===b)); render(); }));
 $('#q').addEventListener('input', e=>{ query=e.target.value; render(); });
