@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#7a2e4d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Miss Source It">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Miss Source It</title>
+<style>
+:root{
+  --brand:#7a2e4d; --brand-2:#a8466f; --brand-soft:#f6e9ef;
+  --bg:#f7f5f3; --card:#fff; --ink:#1f1a1c; --muted:#6f6569; --line:#e7e1e3;
+  --ok:#1f7a4d; --warn:#b5620b; --bad:#b3261e;
+  --r:14px; --shadow:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(60,20,40,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-text-size-adjust:100%}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+
+/* ---------- header / tabs ---------- */
+header{position:sticky;top:0;z-index:20;background:var(--brand);color:#fff;padding:calc(env(safe-area-inset-top) + 10px) 16px 0}
+.hrow{display:flex;align-items:center;gap:10px;max-width:1100px;margin:0 auto}
+.logo{font-weight:700;font-size:18px;letter-spacing:.2px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.logo small{display:block;font-weight:400;font-size:12px;opacity:.8}
+.ibtn{background:rgba(255,255,255,.14);border:0;color:#fff;width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:17px}
+.ibtn:active{background:rgba(255,255,255,.28)}
+.tabs{display:flex;max-width:1100px;margin:10px auto 0}
+.tab{flex:1;background:none;border:0;color:rgba(255,255,255,.75);padding:11px 0 12px;font-weight:600;border-bottom:3px solid transparent}
+.tab.on{color:#fff;border-color:#fff}
+
+main{max-width:1100px;margin:0 auto;padding:14px 14px 110px}
+.sync{font-size:12px;color:var(--muted);margin:0 2px 10px;display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+.dot.warn{background:var(--warn)} .dot.off{background:#aaa}
+.banner{background:#fff6e5;border:1px solid #f1d9a6;color:#6b4a0f;border-radius:12px;padding:10px 12px;font-size:13px;margin-bottom:12px}
+.banner a{color:inherit;font-weight:600}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.stat{background:var(--card);border-radius:var(--r);padding:12px;box-shadow:var(--shadow)}
+.stat .k{font-size:12px;color:var(--muted)} .stat .v{font-size:18px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+
+.toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.search{flex:1;min-width:180px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.seg{display:flex;background:#ece6e8;border-radius:12px;padding:3px}
+.seg button{border:0;background:none;padding:7px 12px;border-radius:9px;font-weight:600;color:var(--muted)}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:9px 14px;font-weight:600}
+.btn.pri{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.danger{color:var(--bad);border-color:#efc9c6}
+.btn:disabled{opacity:.5}
+
+.list{display:grid;gap:10px}
+@media(min-width:760px){.list{grid-template-columns:1fr 1fr}}
+.card{background:var(--card);border-radius:var(--r);padding:13px 14px;box-shadow:var(--shadow);border:0;text-align:left;width:100%}
+.card:active{background:#fbf8f9}
+.ct{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.ct b{font-size:15.5px}
+.amt{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cs{color:var(--muted);font-size:13px;margin-top:3px;display:flex;flex-wrap:wrap;gap:4px 12px}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.chip{background:var(--brand-soft);color:var(--brand);font-size:12px;padding:2px 8px;border-radius:999px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pill{font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:#e8f4ee;color:var(--ok)}
+.pill.zero{background:#f1eeef;color:var(--muted)} .pill.neg{background:#fdecea;color:var(--bad)}
+.empty{text-align:center;color:var(--muted);padding:40px 10px}
+
+.fab{position:fixed;right:18px;bottom:calc(env(safe-area-inset-bottom) + 18px);z-index:15;background:var(--brand);color:#fff;border:0;border-radius:16px;padding:14px 20px;font-weight:700;font-size:15px;box-shadow:0 6px 20px rgba(122,46,77,.35)}
+
+/* ---------- modal / form ---------- */
+.modal{position:fixed;inset:0;z-index:50;background:rgba(20,10,15,.45);display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg);width:100%;max-width:820px;height:100%;max-height:100%;display:flex;flex-direction:column}
+@media(min-width:760px){.modal{align-items:center;padding:24px}.sheet{height:auto;max-height:92vh;border-radius:18px;overflow:hidden}}
+.sh-head{background:var(--card);padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
+.sh-head h2{flex:1;margin:0;font-size:17px}
+.sh-body{flex:1;overflow:auto;padding:14px;-webkit-overflow-scrolling:touch}
+.sh-foot{background:var(--card);border-top:1px solid var(--line);padding:10px 14px calc(env(safe-area-inset-bottom) + 10px);display:flex;gap:10px;align-items:center}
+.gt{flex:1}
+.gt .k{font-size:12px;color:var(--muted)} .gt .v{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
+.x{background:none;border:0;font-size:22px;width:36px;height:36px;border-radius:10px;color:var(--muted)}
+
+.sec{background:var(--card);border-radius:var(--r);padding:12px;margin-bottom:12px;box-shadow:var(--shadow)}
+.sec h3{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--brand);display:flex;justify-content:space-between;align-items:center}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(min-width:620px){.grid.g3{grid-template-columns:repeat(3,1fr)}.grid.g4{grid-template-columns:repeat(4,1fr)}}
+.f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.f.span2{grid-column:span 2}
+.f label{font-size:12px;color:var(--muted);font-weight:600}
+.f input,.f textarea{width:100%;border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 10px;min-height:40px}
+.f input:focus,.f textarea:focus,.search:focus{outline:2px solid var(--brand-2);outline-offset:-1px;border-color:transparent}
+.f textarea{resize:vertical;min-height:58px}
+.f input[readonly]{background:#f8f6f7;color:var(--muted)}
+.line{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px;background:#fffdfd}
+.lh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-weight:700;font-size:13px;color:var(--muted)}
+.rm{background:none;border:0;color:var(--bad);font-size:13px;font-weight:600}
+.calc{display:flex;justify-content:flex-end;gap:16px;margin-top:8px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.calc b{color:var(--ink)}
+.add{width:100%;border:1.5px dashed #d5c4cb;background:none;border-radius:12px;padding:10px;color:var(--brand);font-weight:700}
+.warnmsg{font-size:12px;color:var(--bad);margin-top:6px}
+
+.pick{position:relative;margin-bottom:10px}
+.pick input{width:100%;border:1.5px solid var(--brand-2);background:var(--brand-soft);border-radius:10px;padding:9px 10px 9px 34px;min-height:40px}
+.pick::before{content:"⌕";position:absolute;left:11px;top:7px;font-size:19px;color:var(--brand)}
+.plist{position:absolute;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.15);z-index:5;max-height:300px;overflow:auto}
+.pi{display:block;width:100%;text-align:left;border:0;background:none;padding:9px 12px;border-bottom:1px solid #f2eef0}
+.pi:hover,.pi:focus{background:var(--brand-soft)}
+.pi .a{font-weight:700} .pi .d{font-size:13px;color:var(--muted)}
+.pi .m{font-size:12px;color:var(--muted);display:flex;gap:10px;margin-top:2px}
+.totals{display:grid;grid-template-columns:1fr auto;gap:4px 16px;font-variant-numeric:tabular-nums;font-size:14px}
+.totals .gtl{font-weight:800;font-size:16px;border-top:1px solid var(--line);padding-top:6px}
+.meta{font-size:12px;color:var(--muted);text-align:center;margin:4px 0 8px}
+
+/* ---------- login ---------- */
+#login{position:fixed;inset:0;z-index:60;background:linear-gradient(160deg,var(--brand),#3f1527);display:grid;place-items:center;padding:20px}
+.lbox{background:#fff;border-radius:20px;padding:26px 22px;width:100%;max-width:340px;text-align:center}
+.lbox h1{margin:6px 0 2px;font-size:22px;color:var(--brand)}
+.lbox p{margin:0 0 18px;color:var(--muted);font-size:14px}
+.lbox input{width:100%;text-align:center;font-size:24px;letter-spacing:8px;border:1px solid var(--line);border-radius:12px;padding:12px}
+.lbox .btn{width:100%;margin-top:12px;padding:12px}
+.lerr{color:var(--bad);font-size:13px;min-height:18px;margin-top:8px}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 86px);transform:translateX(-50%);background:#2a2226;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;z-index:80;max-width:90vw;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.set-row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #f1ecee;font-size:14px}
+.set-row:last-child{border:0}
+.hint{font-size:12.5px;color:var(--muted);margin-top:6px}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="login" class="hidden">
+  <div class="lbox">
+    <img src="icon-192.png" alt="" width="64" height="64" style="border-radius:16px">
+    <h1>Miss Source It</h1>
+    <p>Enter your PIN</p>
+    <form id="loginForm" autocomplete="off">
+      <!-- visible type=password input: reliable on iOS -->
+      <input id="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="••••" aria-label="PIN">
+      <button class="btn pri" type="submit" id="loginBtn">Sign in</button>
+    </form>
+    <div class="lerr" id="lerr"></div>
+  </div>
+</div>
+
+<header>
+  <div class="hrow">
+    <div class="logo">Miss Source It<small id="who"></small></div>
+    <button class="ibtn" id="refreshBtn" title="Refresh" aria-label="Refresh">⟳</button>
+    <button class="ibtn" id="exportBtn" title="Export CSV" aria-label="Export CSV">⇩</button>
+    <button class="ibtn" id="setBtn" title="Settings" aria-label="Settings">⚙</button>
+  </div>
+  <nav class="tabs">
+    <button class="tab on" data-tab="inventory">Inventory</button>
+    <button class="tab" data-tab="sale">Sale</button>
+  </nav>
+</header>
+
+<main>
+  <div class="sync"><span class="dot" id="sdot"></span><span id="stext"></span></div>
+  <div id="localBanner" class="banner hidden">Local mode — data is saved on this device only. To share with your team, connect the Google Sheet in <a href="#" id="openSet2">Settings</a>.</div>
+  <div class="stats" id="stats"></div>
+  <div class="toolbar">
+    <input class="search" id="q" type="search" placeholder="Search…">
+    <div class="seg" id="invSeg">
+      <button data-v="purchases" class="on">Purchases</button>
+      <button data-v="stock">Stock</button>
+    </div>
+  </div>
+  <div class="list" id="list"></div>
+</main>
+
+<button class="fab" id="fab">＋ New Purchase</button>
+
+<!-- Entry form -->
+<div class="modal hidden" id="formModal">
+  <div class="sheet">
+    <div class="sh-head"><button class="x" data-close aria-label="Close">✕</button><h2 id="formTitle"></h2><button class="btn danger hidden" id="delBtn">Delete</button></div>
+    <div class="sh-body" id="formBody"></div>
+    <div class="sh-foot">
+      <div class="gt"><div class="k">Grand Total</div><div class="v" id="gtFoot">₹0.00</div></div>
+      <button class="btn" data-close>Cancel</button>
+      <button class="btn pri" id="saveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings -->
+<div class="modal hidden" id="setModal">
+  <div class="sheet">
+    <div class="sh-head"><button class="x" data-close aria-label="Close">✕</button><h2>Settings</h2></div>
+    <div class="sh-body">
+      <div class="sec">
+        <h3>Account</h3>
+        <div class="set-row"><span>Signed in as</span><b id="setUser">—</b></div>
+        <div class="set-row"><span>Role</span><b id="setRole">—</b></div>
+        <div class="set-row"><span>Pending uploads</span><b id="setPending">0</b></div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn hidden" id="installBtn">Install app</button>
+          <button class="btn danger" id="logoutBtn">Sign out</button>
+        </div>
+        <div class="hint" id="iosHint"></div>
+      </div>
+      <div class="sec">
+        <h3>Google Sheet connection</h3>
+        <div class="f"><label for="apiUrl">Apps Script Web App URL</label><input id="apiUrl" type="url" placeholder="https://script.google.com/macros/s/…/exec"></div>
+        <div style="display:flex;gap:8px;margin-top:10px"><button class="btn pri" id="saveApi">Save &amp; connect</button><button class="btn" id="useLocal">Use local mode</button></div>
+        <div class="hint">Leave empty to use the app on this device only. All 5 users should use the same URL (or set it once in index.html → DEFAULT_API_URL).</div>
+      </div>
+      <div class="meta">Miss Source It · v1.0</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast hidden" id="toast"></div>
+
+<script>
+/* ================= CONFIG ================= */
+// Paste your Apps Script Web App URL here so every user is connected automatically.
+const DEFAULT_API_URL = '';
+
+/* ================= STORAGE ================= */
+const K = {cfg:'msi_cfg_v1', data:'msi_data_v1', outbox:'msi_outbox_v1', session:'msi_session_v1'};
+const ls = {
+  get(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+let cfg = ls.get(K.cfg, null) || {apiUrl: DEFAULT_API_URL};
+let data = ls.get(K.data, {inventory:[], sales:[]});
+let outbox = ls.get(K.outbox, []);
+let session = ls.get(K.session, null);     // {name, role, pin}
+let tab = 'inventory', invView = 'purchases', query = '';
+let draft = null, draftKind = null, flushing = false, lastSync = null;
+const connected = () => !!(cfg.apiUrl||'').trim();
+const persist = () => ls.set(K.data, data);
+
+/* ================= HELPERS ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = v => { const x=parseFloat(v); return isFinite(x)?x:0; };
+const r2 = x => Math.round((x+Number.EPSILON)*100)/100;
+const inr = x => '₹'+num(x).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+const key = a => String(a||'').trim().toUpperCase();
+const uid = p => p+'-'+Date.now().toString(36).toUpperCase()+Math.random().toString(36).slice(2,6).toUpperCase();
+const today = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const fdate = s => { if(!s) return ''; const p=String(s).slice(0,10).split('-'); return p.length===3? p[2]+'/'+p[1]+'/'+p[0] : s; };
+function toast(msg, ms=2400){ const t=$('#toast'); t.textContent=msg; t.classList.remove('hidden'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.add('hidden'),ms); }
+
+/* Line maths: taxable = qty × unit price − discount; IGST = taxable × IGST%; total = taxable + IGST */
+function calc(l, fixedQty){
+  l = l||{};
+  const qty = fixedQty!=null ? fixedQty : (l.qty===''||l.qty==null ? 1 : num(l.qty));
+  const taxable = r2(qty*num(l.price) - num(l.discount));
+  const igst = r2(taxable*num(l.igstPct)/100);
+  return {qty, taxable, igst, total:r2(taxable+igst)};
+}
+function totals(e){
+  let taxable=0, igst=0, total=0;
+  (e.items||[]).forEach(it=>{ const c=calc(it); taxable+=c.taxable; igst+=c.igst; total+=c.total; });
+  const s=calc(e.shipping,1); taxable+=s.taxable; igst+=s.igst; total+=s.total;
+  return {taxable:r2(taxable), igst:r2(igst), ship:s.total, total:r2(total)};
+}
+
+/* Stock per article number = purchased qty − sold qty (optionally ignoring one sale being edited) */
+function stockMap(excludeSaleId){
+  const m = {};
+  const sorted = [...data.inventory].sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  sorted.forEach(e => (e.items||[]).forEach(it => {
+    const k = key(it.article); if(!k) return;
+    const s = m[k] || (m[k] = {article:String(it.article).trim(), desc:'', hsn:'', price:0, igstPct:'', inQty:0, outQty:0, source:'', invoiceNo:''});
+    s.inQty += calc(it).qty;
+    // latest purchase wins for details
+    s.desc = it.desc || s.desc; s.hsn = it.hsn || s.hsn; s.price = num(it.price); s.igstPct = it.igstPct; s.source = e.sourcedFrom||s.source; s.invoiceNo = e.invoiceNo||s.invoiceNo;
+  }));
+  data.sales.forEach(e => { if(e.id===excludeSaleId) return; (e.items||[]).forEach(it => {
+    const k = key(it.article); if(!k) return;
+    const s = m[k] || (m[k] = {article:String(it.article).trim(), desc:it.desc||'', hsn:it.hsn||'', price:num(it.price), igstPct:it.igstPct, inQty:0, outQty:0, source:'', invoiceNo:''});
+    s.outQty += calc(it).qty;
+  }); });
+  Object.values(m).forEach(s => s.bal = r2(s.inQty - s.outQty));
+  return m;
+}
+
+/* ================= API / SYNC ================= */
+async function api(action, payload={}, pin){
+  const res = await fetch(cfg.apiUrl.trim(), {
+    method:'POST', redirect:'follow',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},   // text/plain avoids a CORS preflight on Apps Script
+    body: JSON.stringify(Object.assign({}, payload, {action, pin: pin || (session&&session.pin)}))
+  });
+  const j = await res.json();
+  if(!j.ok){ const e = new Error(j.error || 'Request failed'); e.server = true; throw e; }
+  return j;
+}
+function setSync(text, state){ $('#stext').textContent=text; $('#sdot').className='dot'+(state?' '+state:''); }
+function syncLabel(){
+  if(!connected()) return setSync('Local mode · this device only','off');
+  if(outbox.length) return setSync(outbox.length+' change(s) waiting to upload','warn');
+  setSync(lastSync ? 'Synced · '+lastSync.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : 'Connected');
+}
+async function flush(){
+  if(flushing || !connected() || !session || !outbox.length) return;
+  flushing = true; setSync('Uploading…','warn');
+  try{
+    while(outbox.length){
+      const op = outbox[0];
+      try{ await api(op.action, op); }
+      catch(err){
+        // a rejection by the server (not a network problem) won't succeed on retry: drop it and tell the user
+        if(!err.server || /pin/i.test(err.message)) throw err;
+        toast('Not saved to server: '+err.message, 4000);
+      }
+      outbox.shift(); ls.set(K.outbox, outbox);
+    }
+    lastSync = new Date();
+  }catch(err){
+    if(/pin/i.test(err.message)) { logout(); toast('Session expired — sign in again'); }
+  }finally{ flushing=false; syncLabel(); }
+}
+async function refresh(manual){
+  if(!connected() || !session){ syncLabel(); return; }
+  await flush();
+  if(outbox.length){ if(manual) toast('Offline — changes will upload when connected'); return; }
+  try{
+    setSync('Refreshing…','warn');
+    const j = await api('getAll');
+    data = {inventory:j.inventory||[], sales:j.sales||[]};
+    persist(); lastSync = new Date(); render();
+    if(manual) toast('Up to date');
+  }catch(err){
+    if(/pin/i.test(err.message)){ logout(); toast('Session expired — sign in again'); return; }
+    setSync('Can’t reach server · showing saved data','warn');
+    if(manual) toast('Could not reach the server');
+    return;
+  }
+  syncLabel();
+}
+function queue(op){ if(!connected()) return; outbox.push(op); ls.set(K.outbox, outbox); flush(); }
+
+/* ================= AUTH ================= */
+function showLogin(){ $('#login').classList.remove('hidden'); setTimeout(()=>$('#pin').focus(),50); }
+function logout(){ session=null; ls.del(K.session); updateWho(); if(connected()) showLogin(); closeModals(); }
+$('#loginForm').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const pin = $('#pin').value.trim(); if(!pin) return;
+  $('#loginBtn').disabled=true; $('#lerr').textContent='';
+  try{
+    const j = await api('login', {}, pin);
+    session = {name:j.user.name, role:j.user.role, pin};
+    ls.set(K.session, session); $('#pin').value='';
+    $('#login').classList.add('hidden'); updateWho(); refresh();
+  }catch(err){
+    $('#lerr').textContent = /pin/i.test(err.message) ? 'Wrong PIN' : 'Can’t connect: '+err.message;
+  }finally{ $('#loginBtn').disabled=false; }
+});
+function updateWho(){
+  $('#who').textContent = connected() ? (session ? session.name : '') : 'Local mode';
+  $('#localBanner').classList.toggle('hidden', connected());
+}
+const canDelete = () => !connected() || (session && session.role==='admin');
+
+/* ================= RENDER LISTS ================= */
+function render(){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on', b.dataset.tab===tab));
+  $('#invSeg').classList.toggle('hidden', tab!=='inventory');
+  $('#fab').textContent = tab==='inventory' ? '＋ New Purchase' : '＋ New Sale';
+  $('#q').placeholder = tab==='inventory' ? (invView==='stock'?'Search article no. or description…':'Search supplier, invoice, article…') : 'Search customer, mobile, article…';
+  const q = query.trim().toLowerCase();
+  const hit = (...xs) => !q || xs.some(x => String(x||'').toLowerCase().includes(q));
+  const L = $('#list'), S = $('#stats');
+  const stock = stockMap();
+  const stockUnits = r2(Object.values(stock).reduce((a,s)=>a+Math.max(0,s.bal),0));
+  const stockArticles = Object.values(stock).filter(s=>s.bal>0).length;
+
+  if(tab==='inventory'){
+    const purchaseVal = data.inventory.reduce((a,e)=>a+totals(e).total,0);
+    S.innerHTML = stat('Purchases', data.inventory.length) + stat('Purchase value', inr(purchaseVal)) + stat('In stock', stockUnits+' pcs · '+stockArticles+' art.');
+    if(invView==='stock'){
+      const rows = Object.values(stock).filter(s=>hit(s.article,s.desc,s.hsn,s.source)).sort((a,b)=>b.bal-a.bal || a.article.localeCompare(b.article));
+      L.innerHTML = rows.length ? rows.map(s=>`
+        <div class="card">
+          <div class="ct"><b>${esc(s.article)}</b><span class="pill ${s.bal<0?'neg':s.bal===0?'zero':''}">${s.bal} in stock</span></div>
+          <div class="cs"><span>${esc(s.desc||'—')}</span></div>
+          <div class="cs"><span>Bought ${s.inQty}</span><span>Sold ${s.outQty}</span><span>Cost ${inr(s.price)}</span>${s.hsn?`<span>HSN ${esc(s.hsn)}</span>`:''}</div>
+        </div>`).join('') : empty('No articles yet. Add a purchase to build your stock.');
+    } else {
+      const rows = [...data.inventory].sort(byDate).filter(e=>hit(e.sourcedFrom,e.invoiceNo,e.orderNo,...(e.items||[]).flatMap(i=>[i.article,i.desc])));
+      L.innerHTML = rows.length ? rows.map(e=>{ const t=totals(e); return `
+        <button class="card" data-open="inventory" data-id="${esc(e.id)}">
+          <div class="ct"><b>${esc(e.sourcedFrom||'Purchase')}</b><span class="amt">${inr(t.total)}</span></div>
+          <div class="cs"><span>${fdate(e.date)}</span>${e.invoiceNo?`<span>Inv ${esc(e.invoiceNo)}</span>`:''}${e.orderNo?`<span>Order ${esc(e.orderNo)}</span>`:''}<span>${(e.items||[]).length} article(s)</span></div>
+          <div class="chips">${(e.items||[]).slice(0,4).map(i=>`<span class="chip">${esc(i.article||i.desc)}</span>`).join('')}${(e.items||[]).length>4?`<span class="chip">+${e.items.length-4}</span>`:''}</div>
+        </button>`; }).join('') : empty('No purchases yet. Tap “New Purchase” to add one.');
+    }
+  } else {
+    const saleVal = data.sales.reduce((a,e)=>a+totals(e).total,0);
+    const thisMonth = today().slice(0,7);
+    const monthVal = data.sales.filter(e=>String(e.date).slice(0,7)===thisMonth).reduce((a,e)=>a+totals(e).total,0);
+    S.innerHTML = stat('Sales', data.sales.length) + stat('Sales value', inr(saleVal)) + stat('This month', inr(monthVal));
+    const rows = [...data.sales].sort(byDate).filter(e=>hit(e.name,e.mobile,e.email,e.address,e.shipping&&e.shipping.waybill,...(e.items||[]).flatMap(i=>[i.article,i.desc])));
+    L.innerHTML = rows.length ? rows.map(e=>{ const t=totals(e); return `
+      <button class="card" data-open="sale" data-id="${esc(e.id)}">
+        <div class="ct"><b>${esc(e.name||'Customer')}</b><span class="amt">${inr(t.total)}</span></div>
+        <div class="cs"><span>${fdate(e.date)}</span>${e.mobile?`<span>${esc(e.mobile)}</span>`:''}<span>${(e.items||[]).length} item(s)</span>${e.shipping&&e.shipping.company?`<span>${esc(e.shipping.company)}${e.shipping.waybill?' · '+esc(e.shipping.waybill):''}</span>`:''}</div>
+        <div class="chips">${(e.items||[]).slice(0,4).map(i=>`<span class="chip">${esc(i.article||i.desc)}</span>`).join('')}${(e.items||[]).length>4?`<span class="chip">+${e.items.length-4}</span>`:''}</div>
+      </button>`; }).join('') : empty('No sales yet. Tap “New Sale” to add one.');
+  }
+  syncLabel();
+}
+const stat = (k,v) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+const empty = t => `<div class="empty" style="grid-column:1/-1">${t}</div>`;
+const byDate = (a,b) => String(b.date).localeCompare(String(a.date)) || String(b.updatedAt||'').localeCompare(String(a.updatedAt||''));
+
+/* ================= FORM ================= */
+const blankLine = () => ({desc:'', article:'', hsn:'', qty:1, price:'', discount:'', igstPct:''});
+function blank(kind){
+  return kind==='inventory'
+    ? {id:uid('P'), date:today(), sourcedFrom:'', invoiceNo:'', invoiceDate:'', orderNo:'', orderDate:'', items:[blankLine()], shipping:{hsn:'',price:'',discount:'',igstPct:''}}
+    : {id:uid('S'), date:today(), name:'', address:'', email:'', mobile:'', items:[blankLine()], shipping:{date:'',company:'',waybill:'',hsn:'',price:'',discount:'',igstPct:''}};
+}
+function openForm(kind, id){
+  draftKind = kind;
+  const src = id ? (kind==='inventory'?data.inventory:data.sales).find(x=>x.id===id) : null;
+  draft = src ? JSON.parse(JSON.stringify(src)) : blank(kind);
+  draft.items = draft.items && draft.items.length ? draft.items : [blankLine()];
+  draft.shipping = draft.shipping || {};
+  draft._isNew = !src;
+  $('#formTitle').textContent = (src?'Edit ':'New ') + (kind==='inventory'?'Purchase':'Sale');
+  $('#delBtn').classList.toggle('hidden', !src || !canDelete());
+  renderForm();
+  $('#formModal').classList.remove('hidden');
+  $('#formBody').scrollTop = 0;
+}
+function fld(label, path, type='text', extra=''){
+  const v = getPath(path);
+  if(type==='textarea') return `<div class="f ${extra}"><label>${label}</label><textarea data-p="${path}">${esc(v)}</textarea></div>`;
+  const im = type==='number' ? ' inputmode="decimal" step="any"' : type==='tel' ? ' inputmode="tel"' : '';
+  return `<div class="f ${extra.includes('span2')?'span2':''}"><label>${label}</label><input type="${type}" data-p="${path}" value="${esc(v)}"${im} ${extra.replace('span2','')}></div>`;
+}
+function getPath(p){ return p.split('.').reduce((o,k)=>o==null?o:o[k], draft) ?? ''; }
+function setPath(p, v){ const ks=p.split('.'); let o=draft; ks.slice(0,-1).forEach(k=>o=o[k]); o[ks[ks.length-1]]=v; }
+
+function renderForm(){
+  const isInv = draftKind==='inventory';
+  let h = '';
+  if(isInv){
+    h += `<div class="sec"><h3>Purchase details</h3><div class="grid g3">
+      ${fld('Date','date','date')}${fld('Sourced from','sourcedFrom')}${fld('Invoice Number','invoiceNo')}
+      ${fld('Invoice date','invoiceDate','date')}${fld('Order Number','orderNo')}${fld('Order date','orderDate','date')}
+    </div></div>`;
+  } else {
+    h += `<div class="sec"><h3>Customer</h3><div class="grid g4">
+      ${fld('Date','date','date')}${fld('Name','name')}${fld('Mobile number','mobile','tel')}${fld('Email id','email','email')}
+      ${fld('Address','address','textarea','span2')}
+    </div></div>`;
+  }
+  const stock = isInv ? null : stockMap(draft.id);
+  h += `<div class="sec"><h3>Articles <span style="text-transform:none;letter-spacing:0;color:var(--muted);font-weight:600">${draft.items.length}</span></h3>`;
+  draft.items.forEach((it,i)=>{
+    const p = 'items.'+i;
+    h += `<div class="line" data-line="${i}">
+      <div class="lh"><span>Article ${i+1}</span>${draft.items.length>1?`<button class="rm" data-rm="${i}">Remove</button>`:''}</div>
+      ${isInv?'':`<div class="pick"><input type="search" data-pick="${i}" placeholder="Pick from inventory — type article no. or description" autocomplete="off"><div class="plist hidden" data-plist="${i}"></div></div>`}
+      <div class="grid g4">
+        ${fld('Item Description',p+'.desc','text','span2')}${fld('Article Number',p+'.article')}${fld('HSN Code',p+'.hsn')}
+        ${fld('Qty',p+'.qty','number','min="0"')}${fld('Unit Price (₹)',p+'.price','number')}${fld('Discount (₹)',p+'.discount','number')}${fld('IGST %',p+'.igstPct','number')}
+      </div>
+      <div class="calc"><span>IGST <b data-igst="${p}"></b></span><span>Total <b data-tot="${p}"></b></span></div>
+      ${isInv?'':`<div class="warnmsg" data-stockwarn="${i}"></div>`}
+    </div>`;
+  });
+  h += `<button class="add" id="addLine">＋ Add article</button></div>`;
+  h += `<div class="sec"><h3>Shipping</h3><div class="grid g4">
+    ${isInv?'':fld('Date','shipping.date','date')+fld('Shipping Company','shipping.company')+fld('Way Bill No.','shipping.waybill')}
+    ${fld('HSN Code','shipping.hsn')}${fld('Charges (₹)','shipping.price','number')}${fld('Discount (₹)','shipping.discount','number')}${fld('IGST %','shipping.igstPct','number')}
+  </div><div class="calc"><span>IGST <b data-igst="shipping"></b></span><span>Total <b data-tot="shipping"></b></span></div></div>`;
+  h += `<div class="sec"><h3>Grand Total</h3><div class="totals">
+    <span>Taxable value</span><span id="tTax"></span><span>IGST Amount</span><span id="tIgst"></span>
+    <span class="gtl">Grand Total</span><span class="gtl" id="tTot"></span></div></div>`;
+  if(!draft._isNew) h += `<div class="meta">${draft.createdBy?'Created by '+esc(draft.createdBy)+' · ':''}${draft.updatedAt?'Last updated '+new Date(draft.updatedAt).toLocaleString():''}</div>`;
+  $('#formBody').innerHTML = h;
+  updateTotals();
+}
+function updateTotals(){
+  const isInv = draftKind==='inventory';
+  const stock = isInv ? null : stockMap(draft.id);
+  // quantities of the same article inside this sale
+  const inSale = {};
+  if(!isInv) draft.items.forEach(it=>{ const k=key(it.article); if(k) inSale[k]=(inSale[k]||0)+calc(it).qty; });
+  draft.items.forEach((it,i)=>{
+    const c = calc(it), p='items.'+i;
+    const a=$(`[data-igst="${p}"]`), b=$(`[data-tot="${p}"]`);
+    if(a) a.textContent = inr(c.igst); if(b) b.textContent = inr(c.total);
+    if(!isInv){
+      const w = $(`[data-stockwarn="${i}"]`); if(!w) return;
+      const k = key(it.article), s = stock[k];
+      w.textContent = !k ? '' : !s || s.inQty===0 ? 'This article number is not in Inventory.' : inSale[k] > s.bal ? `Only ${s.bal} in stock.` : '';
+    }
+  });
+  const sc = calc(draft.shipping,1);
+  $('[data-igst="shipping"]').textContent = inr(sc.igst); $('[data-tot="shipping"]').textContent = inr(sc.total);
+  const t = totals(draft);
+  $('#tTax').textContent = inr(t.taxable); $('#tIgst').textContent = inr(t.igst); $('#tTot').textContent = inr(t.total);
+  $('#gtFoot').textContent = inr(t.total);
+}
+function fillFromStock(i, s){
+  const it = draft.items[i];
+  Object.assign(it, {article:s.article, desc:s.desc, hsn:s.hsn, price:s.price||'', igstPct:s.igstPct??''});
+  if(!it.qty) it.qty = 1;
+  renderForm();
+  const q = document.querySelector(`[data-line="${i}"] [data-p="items.${i}.price"]`); if(q) q.focus();
+  toast('Filled from inventory — adjust selling price if needed');
+}
+function showPicks(i, text){
+  const box = $(`[data-plist="${i}"]`); if(!box) return;
+  const q = text.trim().toLowerCase();
+  const all = Object.values(stockMap(draft.id)).filter(s=>s.inQty>0);
+  const rows = all.filter(s=>!q || s.article.toLowerCase().includes(q) || String(s.desc).toLowerCase().includes(q) || String(s.hsn).toLowerCase().includes(q))
+    .sort((a,b)=> (b.bal>0)-(a.bal>0) || a.article.localeCompare(b.article)).slice(0,30);
+  box.innerHTML = rows.length ? rows.map(s=>`<button type="button" class="pi" data-pickart="${esc(s.article)}" data-i="${i}">
+      <div class="a">${esc(s.article)} <span class="pill ${s.bal<=0?'zero':''}" style="margin-left:6px">${s.bal} left</span></div>
+      <div class="d">${esc(s.desc||'')}</div>
+      <div class="m"><span>Cost ${inr(s.price)}</span>${s.hsn?`<span>HSN ${esc(s.hsn)}</span>`:''}${s.igstPct!==''&&s.igstPct!=null?`<span>IGST ${esc(s.igstPct)}%</span>`:''}</div>
+    </button>`).join('') : `<div class="pi" style="color:var(--muted)">${all.length?'No match':'Inventory is empty — add purchases first'}</div>`;
+  box.classList.remove('hidden');
+}
+
+$('#formBody').addEventListener('input', ev => {
+  const t = ev.target;
+  if(t.dataset.p){ setPath(t.dataset.p, t.value); updateTotals(); }
+  if(t.dataset.pick!=null) showPicks(+t.dataset.pick, t.value);
+});
+$('#formBody').addEventListener('focusin', ev => { if(ev.target.dataset.pick!=null) showPicks(+ev.target.dataset.pick, ev.target.value); });
+$('#formBody').addEventListener('focusout', ev => {
+  const t = ev.target;
+  if(t.dataset.pick!=null){ const i=t.dataset.pick; setTimeout(()=>{ const b=$(`[data-plist="${i}"]`); if(b && !b.contains(document.activeElement)) b.classList.add('hidden'); },180); }
+  // Typing an exact article number in a Sale line auto-fills any empty fields from Inventory
+  const m = t.dataset.p && t.dataset.p.match(/^items\.(\d+)\.article$/);
+  if(m && draftKind==='sale'){
+    const i=+m[1], it=draft.items[i], s=stockMap(draft.id)[key(it.article)];
+    if(s && s.inQty>0){
+      let changed = it.article !== s.article; it.article = s.article;
+      ['desc','hsn','igstPct'].forEach(f=>{ if((it[f]===''||it[f]==null) && s[f]!=='' && s[f]!=null){ it[f]=s[f]; changed=true; } });
+      if((it.price===''||it.price==null) && s.price){ it.price=s.price; changed=true; }
+      if(changed){ const ae=document.activeElement&&document.activeElement.dataset.p; renderForm(); if(ae){ const el=document.querySelector(`[data-p="${ae}"]`); if(el) el.focus(); } }
+    }
+  }
+});
+$('#formBody').addEventListener('click', ev => {
+  const pk = ev.target.closest('[data-pickart]');
+  if(pk){ const s = stockMap(draft.id)[key(pk.dataset.pickart)]; if(s) fillFromStock(+pk.dataset.i, s); return; }
+  const rm = ev.target.closest('[data-rm]');
+  if(rm){ draft.items.splice(+rm.dataset.rm,1); renderForm(); return; }
+  if(ev.target.id==='addLine'){
+    draft.items.push(blankLine()); renderForm();
+    const i=draft.items.length-1, el=document.querySelector(draftKind==='sale'?`[data-pick="${i}"]`:`[data-p="items.${i}.desc"]`);
+    if(el){ el.scrollIntoView({block:'center'}); el.focus(); }
+  }
+});
+$('#formBody').addEventListener('keydown', ev => { if(ev.key==='Enter' && ev.target.tagName==='INPUT') ev.preventDefault(); });
+
+$('#saveBtn').addEventListener('click', () => {
+  const isInv = draftKind==='inventory';
+  const items = draft.items.filter(it => [it.desc,it.article,it.price].some(v=>String(v||'').trim()!==''));
+  if(!draft.date) return toast('Please enter the date');
+  if(!items.length) return toast('Add at least one article');
+  if(isInv){
+    if(items.some(it=>!String(it.article||'').trim())) return toast('Every article needs an Article Number (used for stock & sale lookup)');
+  } else {
+    if(!String(draft.name||'').trim()) return toast('Please enter the customer name');
+    const stock = stockMap(draft.id), need = {};
+    items.forEach(it=>{ const k=key(it.article); if(k) need[k]=(need[k]||0)+calc(it).qty; });
+    const short = Object.keys(need).filter(k=>!stock[k] || need[k]>stock[k].bal);
+    if(short.length && !confirm('Stock is short or missing for: '+short.join(', ')+'\n\nSave anyway?')) return;
+  }
+  const entry = JSON.parse(JSON.stringify(draft)); delete entry._isNew;
+  entry.items = items.map(it=>({...it, qty: it.qty===''||it.qty==null?1:num(it.qty)}));
+  entry.updatedAt = new Date().toISOString();
+  entry.createdBy = entry.createdBy || (session ? session.name : 'Local');
+  entry.updatedBy = session ? session.name : 'Local';
+  const list = isInv ? data.inventory : data.sales;
+  const ix = list.findIndex(x=>x.id===entry.id);
+  if(ix>=0) list[ix]=entry; else list.unshift(entry);
+  persist(); closeModals(); render();
+  queue({action:'save', kind: isInv?'inventory':'sale', entry});
+  toast(isInv?'Purchase saved':'Sale saved');
+});
+$('#delBtn').addEventListener('click', () => {
+  if(!confirm('Delete this '+(draftKind==='inventory'?'purchase':'sale')+'? This cannot be undone.')) return;
+  const isInv = draftKind==='inventory', id = draft.id;
+  if(isInv) data.inventory = data.inventory.filter(x=>x.id!==id); else data.sales = data.sales.filter(x=>x.id!==id);
+  persist(); closeModals(); render();
+  queue({action:'delete', kind: isInv?'inventory':'sale', id});
+  toast('Deleted');
+});
+
+/* ================= CSV EXPORT ================= */
+function csvRows(kind){
+  const R = [];
+  if(kind==='inventory'){
+    R.push(['Date','Sourced from','Invoice Number','Invoice date','Order Number','Order date','Line','Item Description','Article Number','HSN Code','Qty','Unit Price','Discount','IGST %','IGST Amount','Total']);
+    [...data.inventory].sort(byDate).forEach(e=>{
+      const h=[e.date,e.sourcedFrom,e.invoiceNo,e.invoiceDate,e.orderNo,e.orderDate];
+      e.items.forEach(it=>{ const c=calc(it); R.push([...h,'Article',it.desc,it.article,it.hsn,c.qty,num(it.price),num(it.discount),num(it.igstPct),c.igst,c.total]); });
+      const s=calc(e.shipping,1); if(s.total) R.push([...h,'Shipping','','',e.shipping.hsn,1,num(e.shipping.price),num(e.shipping.discount),num(e.shipping.igstPct),s.igst,s.total]);
+      const t=totals(e); R.push([...h,'Grand Total','','','','','','','',t.igst,t.total]);
+    });
+  } else {
+    R.push(['Date','Name','Address','Email id','Mobile number','Line','Ship Date','Shipping Company','Way Bill No.','Item Description','Article Number','HSN Code','Qty','Unit Price','Discount','IGST %','IGST Amount','Total']);
+    [...data.sales].sort(byDate).forEach(e=>{
+      const h=[e.date,e.name,e.address,e.email,e.mobile], sh=e.shipping||{};
+      e.items.forEach(it=>{ const c=calc(it); R.push([...h,'Article','','','',it.desc,it.article,it.hsn,c.qty,num(it.price),num(it.discount),num(it.igstPct),c.igst,c.total]); });
+      const s=calc(sh,1); if(s.total||sh.company||sh.waybill) R.push([...h,'Shipping',sh.date,sh.company,sh.waybill,'','',sh.hsn,1,num(sh.price),num(sh.discount),num(sh.igstPct),s.igst,s.total]);
+      const t=totals(e); R.push([...h,'Grand Total','','','','','','','','','','',t.igst,t.total]);
+    });
+  }
+  return R;
+}
+$('#exportBtn').addEventListener('click', () => {
+  const kind = tab==='inventory'?'inventory':'sale';
+  const csv = '﻿' + csvRows(kind).map(r=>r.map(v=>{ const s=String(v??''); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }).join(',')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download = `MissSourceIt_${kind==='inventory'?'Inventory':'Sale'}_${today()}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+});
+
+/* ================= SETTINGS / NAV ================= */
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt=e; $('#installBtn').classList.remove('hidden'); });
+$('#installBtn').addEventListener('click', async () => { if(!deferredPrompt) return; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; $('#installBtn').classList.add('hidden'); });
+function openSettings(){
+  $('#apiUrl').value = cfg.apiUrl||'';
+  $('#setUser').textContent = connected() ? (session?session.name:'—') : 'Local user';
+  $('#setRole').textContent = connected() ? (session?session.role:'—') : 'admin (local)';
+  $('#setPending').textContent = outbox.length;
+  $('#logoutBtn').classList.toggle('hidden', !connected());
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.navigator.standalone;
+  $('#iosHint').textContent = ios ? 'To install on iPhone: tap Share → “Add to Home Screen”.' : (deferredPrompt?'':'To install: use your browser menu → “Install app” / “Add to Home screen”.');
+  $('#setModal').classList.remove('hidden');
+}
+$('#setBtn').addEventListener('click', openSettings);
+$('#openSet2').addEventListener('click', e=>{ e.preventDefault(); openSettings(); });
+$('#saveApi').addEventListener('click', async () => {
+  const url = $('#apiUrl').value.trim();
+  if(url && !/^https:\/\/script\.google(usercontent)?\.com\//.test(url)) return toast('That doesn’t look like an Apps Script URL');
+  if(url !== (cfg.apiUrl||'')){ session=null; ls.del(K.session); outbox=[]; ls.set(K.outbox,outbox); }
+  cfg.apiUrl = url; ls.set(K.cfg, cfg);
+  closeModals(); updateWho(); render();
+  if(connected() && !session) showLogin(); else if(connected()) refresh(true);
+});
+$('#useLocal').addEventListener('click', () => { $('#apiUrl').value=''; $('#saveApi').click(); });
+$('#logoutBtn').addEventListener('click', logout);
+$('#refreshBtn').addEventListener('click', () => connected() ? refresh(true) : toast('Local mode — nothing to sync'));
+function closeModals(){ document.querySelectorAll('.modal').forEach(m=>m.classList.add('hidden')); }
+document.addEventListener('click', ev => {
+  if(ev.target.closest('[data-close]')) closeModals();
+  const op = ev.target.closest('[data-open]'); if(op) openForm(op.dataset.open, op.dataset.id);
+});
+document.addEventListener('keydown', ev => { if(ev.key==='Escape') closeModals(); });
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{ tab=b.dataset.tab; query=''; $('#q').value=''; render(); window.scrollTo(0,0); }));
+document.querySelectorAll('#invSeg button').forEach(b=>b.addEventListener('click',()=>{ invView=b.dataset.v; document.querySelectorAll('#invSeg button').forEach(x=>x.classList.toggle('on',x===b)); render(); }));
+$('#q').addEventListener('input', e=>{ query=e.target.value; render(); });
+$('#fab').addEventListener('click', ()=>openForm(tab==='inventory'?'inventory':'sale'));
+
+/* ================= BOOT ================= */
+updateWho(); render();
+if(connected()){ if(session) refresh(); else showLogin(); }
+setInterval(()=>{ if(document.visibilityState==='visible' && $('#formModal').classList.contains('hidden')) refresh(); }, 60000);
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') refresh(); });
+window.addEventListener('online', ()=>refresh());
+if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
