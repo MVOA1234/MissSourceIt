@@ -1,6 +1,6 @@
 // Miss Source It service worker — caches the app shell so it opens offline.
 // Bump VERSION whenever you upload a new index.html so users get the update.
-const VERSION = 'msi-v1.1.0';
+const VERSION = 'msi-v1.1.1';
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-512-maskable.png'];
 
 self.addEventListener('install', e => {
