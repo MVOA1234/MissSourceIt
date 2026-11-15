@@ -205,7 +205,7 @@ main{max-width:1100px;margin:0 auto;padding:14px 14px 110px}
         </div>
         <div class="hint" id="iosHint"></div>
       </div>
-      <div class="sec">
+      <div class="sec" id="apiSec">
         <h3>Google Sheet connection</h3>
         <div class="f"><label for="apiUrl">Apps Script Web App URL</label><input id="apiUrl" type="url" placeholder="https://script.google.com/macros/s/…/exec"></div>
         <div style="display:flex;gap:8px;margin-top:10px"><button class="btn pri" id="saveApi">Save &amp; connect</button><button class="btn" id="useLocal">Use local mode</button></div>
@@ -221,7 +221,7 @@ main{max-width:1100px;margin:0 auto;padding:14px 14px 110px}
 <script>
 /* ================= CONFIG ================= */
 // Paste your Apps Script Web App URL here so every user is connected automatically.
-const DEFAULT_API_URL = '';
+const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbzrHJm9w2kqZgjO67WCPl6gG8Joah5BTo6qLFlGVFjbaakazgEGSCtUfZCSmTnaaJiJ/exec';
 
 /* ================= STORAGE ================= */
 const K = {cfg:'msi_cfg_v1', data:'msi_data_v1', outbox:'msi_outbox_v1', session:'msi_session_v1'};
@@ -230,7 +230,9 @@ const ls = {
   set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} },
   del(k){ try{ localStorage.removeItem(k); }catch(e){} }
 };
-let cfg = ls.get(K.cfg, null) || {apiUrl: DEFAULT_API_URL};
+// When a server URL is built in, it is always used (no local mode, PIN always required).
+const LOCKED = !!DEFAULT_API_URL;
+let cfg = LOCKED ? {apiUrl: DEFAULT_API_URL} : (ls.get(K.cfg, null) || {apiUrl: ''});
 let data = ls.get(K.data, {inventory:[], sales:[]});
 let outbox = ls.get(K.outbox, []);
 let session = ls.get(K.session, null);     // {name, role, pin}
@@ -636,6 +638,7 @@ window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferr
 $('#installBtn').addEventListener('click', async () => { if(!deferredPrompt) return; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; $('#installBtn').classList.add('hidden'); });
 function openSettings(){
   $('#apiUrl').value = cfg.apiUrl||'';
+  $('#apiSec').classList.toggle('hidden', LOCKED);
   $('#setUser').textContent = connected() ? (session?session.name:'—') : 'Local user';
   $('#setRole').textContent = connected() ? (session?session.role:'—') : 'admin (local)';
   $('#setPending').textContent = outbox.length;
