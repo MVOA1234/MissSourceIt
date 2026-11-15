@@ -391,11 +391,11 @@ function render(){
           <div class="cs"><span>Bought ${s.inQty}</span><span>Sold ${s.outQty}</span><span>Cost ${inr(s.price)}</span>${s.hsn?`<span>HSN ${esc(s.hsn)}</span>`:''}</div>
         </div>`).join('') : empty('No articles yet. Add a purchase to build your stock.');
     } else {
-      const rows = [...data.inventory].sort(byDate).filter(e=>hit(e.sourcedFrom,e.invoiceNo,e.orderNo,...(e.items||[]).flatMap(i=>[i.article,i.desc])));
+      const rows = [...data.inventory].sort(byDate).filter(e=>hit(e.sourcedFrom,e.invoiceNo,e.orderNo,e.paidBy,...(e.items||[]).flatMap(i=>[i.article,i.desc])));
       L.innerHTML = rows.length ? rows.map(e=>{ const t=totals(e); return `
         <button class="card" data-open="inventory" data-id="${esc(e.id)}">
           <div class="ct"><b>${esc(e.sourcedFrom||'Purchase')}</b><span class="amt">${inr(t.total)}</span></div>
-          <div class="cs"><span>${fdate(e.date)}</span>${e.invoiceNo?`<span>Inv ${esc(e.invoiceNo)}</span>`:''}${e.orderNo?`<span>Order ${esc(e.orderNo)}</span>`:''}<span>${(e.items||[]).length} article(s)</span></div>
+          <div class="cs"><span>${fdate(e.date)}</span>${e.invoiceNo?`<span>Inv ${esc(e.invoiceNo)}</span>`:''}${e.orderNo?`<span>Order ${esc(e.orderNo)}</span>`:''}<span>${(e.items||[]).length} article(s)</span>${e.paidBy?`<span>Paid by ${esc(e.paidBy)}</span>`:''}</div>
           <div class="chips">${(e.items||[]).slice(0,4).map(i=>`<span class="chip">${esc(i.article||i.desc)}</span>`).join('')}${(e.items||[]).length>4?`<span class="chip">+${e.items.length-4}</span>`:''}</div>
         </button>`; }).join('') : empty('No purchases yet. Tap “New Purchase” to add one.');
     }
@@ -422,7 +422,7 @@ const byDate = (a,b) => String(b.date).localeCompare(String(a.date)) || String(b
 const blankLine = () => ({desc:'', article:'', hsn:'', qty:1, price:'', discount:'', igstPct:''});
 function blank(kind){
   return kind==='inventory'
-    ? {id:uid('P'), date:today(), sourcedFrom:'', invoiceNo:'', invoiceDate:'', orderNo:'', orderDate:'', items:[blankLine()], shipping:{hsn:'',price:'',discount:'',igstPct:''}}
+    ? {id:uid('P'), date:today(), sourcedFrom:'', invoiceNo:'', invoiceDate:'', orderNo:'', orderDate:'', items:[blankLine()], shipping:{hsn:'',price:'',discount:'',igstPct:''}, paidBy:''}
     : {id:uid('S'), date:today(), name:'', address:'', email:'', mobile:'', items:[blankLine()], shipping:{date:'',company:'',waybill:'',hsn:'',price:'',discount:'',igstPct:''}};
 }
 function openForm(kind, id){
@@ -484,6 +484,11 @@ function renderForm(){
   h += `<div class="sec"><h3>Grand Total</h3><div class="totals">
     <span>Taxable value</span><span id="tTax"></span><span>IGST Amount</span><span id="tIgst"></span>
     <span class="gtl">Grand Total</span><span class="gtl" id="tTot"></span></div></div>`;
+  if(isInv){
+    const payers=[...new Set(data.inventory.map(e=>String(e.paidBy||'').trim()).filter(Boolean))].sort();
+    h += `<div class="sec"><h3>Payment</h3><div class="grid">${fld('Paid by','paidBy','text','span2 list="payerList" autocomplete="off"')}</div>
+      <datalist id="payerList">${payers.map(x=>`<option value="${esc(x)}">`).join('')}</datalist></div>`;
+  }
   if(!draft._isNew) h += `<div class="meta">${draft.createdBy?'Created by '+esc(draft.createdBy)+' · ':''}${draft.updatedAt?'Last updated '+new Date(draft.updatedAt).toLocaleString():''}</div>`;
   $('#formBody').innerHTML = h;
   updateTotals();
@@ -605,12 +610,13 @@ $('#delBtn').addEventListener('click', () => {
 function csvRows(kind){
   const R = [];
   if(kind==='inventory'){
-    R.push(['Date','Sourced from','Invoice Number','Invoice date','Order Number','Order date','Line','Item Description','Article Number','HSN Code','Qty','Unit Price','Discount','IGST %','IGST Amount','Total']);
+    R.push(['Date','Sourced from','Invoice Number','Invoice date','Order Number','Order date','Line','Item Description','Article Number','HSN Code','Qty','Unit Price','Discount','IGST %','IGST Amount','Total','Paid by']);
     [...data.inventory].sort(byDate).forEach(e=>{
       const h=[e.date,e.sourcedFrom,e.invoiceNo,e.invoiceDate,e.orderNo,e.orderDate];
-      e.items.forEach(it=>{ const c=calc(it); R.push([...h,'Article',it.desc,it.article,it.hsn,c.qty,num(it.price),num(it.discount),num(it.igstPct),c.igst,c.total]); });
-      const s=calc(e.shipping,1); if(s.total) R.push([...h,'Shipping','','',e.shipping.hsn,1,num(e.shipping.price),num(e.shipping.discount),num(e.shipping.igstPct),s.igst,s.total]);
-      const t=totals(e); R.push([...h,'Grand Total','','','','','','','',t.igst,t.total]);
+      const pb=e.paidBy||'';
+      e.items.forEach(it=>{ const c=calc(it); R.push([...h,'Article',it.desc,it.article,it.hsn,c.qty,num(it.price),num(it.discount),num(it.igstPct),c.igst,c.total,pb]); });
+      const s=calc(e.shipping,1); if(s.total) R.push([...h,'Shipping','','',e.shipping.hsn,1,num(e.shipping.price),num(e.shipping.discount),num(e.shipping.igstPct),s.igst,s.total,pb]);
+      const t=totals(e); R.push([...h,'Grand Total','','','','','','','',t.igst,t.total,pb]);
     });
   } else {
     R.push(['Date','Name','Address','Email id','Mobile number','Line','Ship Date','Shipping Company','Way Bill No.','Item Description','Article Number','HSN Code','Qty','Unit Price','Discount','IGST %','IGST Amount','Total']);
